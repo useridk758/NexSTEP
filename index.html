@@ -3,105 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexSTEP | Loading...</title>
+    <title>NexSTEP | Galaxy Edition</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #050505;
-            color: #fff;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            text-align: center;
+        /* Black Galaxy Theme */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: #000; overflow: hidden;
+            font-family: 'Segoe UI', sans-serif; color: #fff;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        /* Animated Galaxy Background for Launcher */
-        .stars {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
-            z-index: -1;
+        /* Animated Starfield */
+        #star-canvas { position: absolute; top: 0; left: 0; z-index: 0; }
+
+        .container {
+            z-index: 10; text-align: center;
+            background: rgba(10, 10, 20, 0.8);
+            padding: 40px; border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
 
-        .loader {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #00d4ff;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+        h1 { font-size: 3rem; letter-spacing: 8px; margin: 0; text-shadow: 0 0 15px #00d4ff; }
+        p { color: #888; font-size: 1.1rem; margin-top: 10px; }
+        
+        .launch-btn {
+            margin-top: 30px; padding: 15px 40px;
+            background: transparent; color: #00d4ff;
+            border: 2px solid #00d4ff; border-radius: 50px;
+            font-weight: bold; cursor: pointer; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 2px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        h1 {
-            font-size: 2rem;
-            letter-spacing: 5px;
-            text-shadow: 0 0 20px #00d4ff;
-            margin: 0;
-        }
-
-        p { color: #888; margin-top: 10px; font-size: 0.9rem; }
+        .launch-btn:hover { background: #00d4ff; color: #000; box-shadow: 0 0 30px #00d4ff; }
     </style>
 </head>
 <body>
-    <div class="stars"></div>
-    <div class="content">
-        <div class="loader"></div>
+    <canvas id="star-canvas"></canvas>
+    <div class="container">
         <h1>NexSTEP</h1>
-        <p>Initializing Secure Galaxy Environment...</p>
+        <p>Advanced Game Environment & Proxy Hub</p>
+        <button class="launch-btn" onclick="openCloaked()">Initiate Launch</button>
     </div>
 
     <script>
-        // Replace this URL with your actual Google Sites URL
-        const destination = "https://sites.google.com";
+        // 1. STARFIELD ANIMATION
+        const canvas = document.getElementById('star-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
 
-        function launch() {
-            // Create a new window
-            const win = window.open();
-            if (!win || win.closed) {
-                alert("Pop-ups are blocked! Please allow pop-ups to launch NexSTEP in stealth mode.");
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Star {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speed = Math.random() * 0.5;
+            }
+            draw() {
+                ctx.fillStyle = "#fff";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > canvas.height) this.y = 0;
+            }
+        }
+
+        function init() {
+            resize();
+            stars = [];
+            for (let i = 0; i < 200; i++) stars.push(new Star());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(s => { s.update(); s.draw(); });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', init);
+        init(); animate();
+
+        // 2. ADVANCED TAB CLOAKING (ABOUT:BLANK)
+        function openCloaked() {
+            const url = window.location.href; // Hosts this exact page into the blank tab
+            const win = window.open('about:blank', '_blank');
+            
+            if (!win) {
+                alert("Pop-up blocked! Please allow pop-ups to use Cloak Mode.");
                 return;
             }
 
-            // Style the new about:blank tab
-            win.document.title = "Classes"; // Sneaky title
-            const link = win.document.createElement('link');
-            link.rel = 'icon';
-            link.href = 'https://ssl.gstatic.com'; // Google Drive Icon
-            win.document.head.appendChild(link);
+            // Fake identity for the tab
+            win.document.title = "Google Drive";
+            const favicon = win.document.createElement('link');
+            favicon.rel = 'icon';
+            favicon.href = 'https://ssl.gstatic.com';
+            win.document.head.appendChild(favicon);
 
-            // Inject the iframe
+            // Fullscreen Iframe Injection
             const iframe = win.document.createElement('iframe');
-            iframe.style.position = "fixed";
-            iframe.style.top = "0";
-            iframe.style.left = "0";
-            iframe.style.bottom = "0";
-            iframe.style.right = "0";
-            iframe.style.width = "100%";
-            iframe.style.height = "100%";
-            iframe.style.border = "none";
-            iframe.style.margin = "0";
-            iframe.style.padding = "0";
-            iframe.style.overflow = "hidden";
-            iframe.style.zIndex = "999999";
-            iframe.src = destination;
+            iframe.style.cssText = "position:fixed;top:0;left:0;bottom:0;right:0;width:100%;height:100%;border:none;margin:0;padding:0;overflow:hidden;z-index:999999;";
+            
+            // Critical: Using a Blob to bypass X-Frame restrictions
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            iframe.src = URL.createObjectURL(blob);
 
             win.document.body.appendChild(iframe);
-            
-            // Redirect the original GitHub page to a "safe" site like Google
-            location.replace("https://google.com");
-        }
 
-        // Auto-launch on load
-        window.onload = launch;
+            // Redirect original tab to a safe site
+            window.location.replace("https://google.com");
+        }
     </script>
 </body>
 </html>
