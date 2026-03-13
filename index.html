@@ -3,126 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexSTEP | Galaxy Edition</title>
+    <title>Google Drive</title> <!-- Sneaky Tab Title -->
+    <link rel="icon" href="https://ssl.gstatic.com">
     <style>
-        /* Black Galaxy Theme */
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background: #000; overflow: hidden;
             font-family: 'Segoe UI', sans-serif; color: #fff;
-            display: flex; justify-content: center; align-items: center;
         }
 
-        /* Animated Starfield */
-        #star-canvas { position: absolute; top: 0; left: 0; z-index: 0; }
+        /* Moving Starfield Background */
+        #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
 
-        .container {
-            z-index: 10; text-align: center;
-            background: rgba(10, 10, 20, 0.8);
-            padding: 40px; border-radius: 20px;
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 0 0 50px rgba(0, 212, 255, 0.2);
-            backdrop-filter: blur(10px);
+        .ui-layer {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100%; text-align: center;
+            background: radial-gradient(circle, rgba(0,212,255,0.05) 0%, rgba(0,0,0,1) 70%);
         }
 
-        h1 { font-size: 3rem; letter-spacing: 8px; margin: 0; text-shadow: 0 0 15px #00d4ff; }
-        p { color: #888; font-size: 1.1rem; margin-top: 10px; }
-        
-        .launch-btn {
-            margin-top: 30px; padding: 15px 40px;
-            background: transparent; color: #00d4ff;
-            border: 2px solid #00d4ff; border-radius: 50px;
-            font-weight: bold; cursor: pointer; transition: 0.3s;
-            text-transform: uppercase; letter-spacing: 2px;
+        h1 { font-size: 4rem; letter-spacing: 12px; margin: 0; text-shadow: 0 0 20px #00d4ff; color: #00d4ff; }
+        p { color: #555; letter-spacing: 2px; margin-bottom: 30px; }
+
+        .game-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 20px; max-width: 800px;
         }
 
-        .launch-btn:hover { background: #00d4ff; color: #000; box-shadow: 0 0 30px #00d4ff; }
+        .game-card {
+            padding: 20px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,212,255,0.2); border-radius: 15px;
+            cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff;
+        }
+
+        .game-card:hover {
+            background: #00d4ff; color: #000;
+            box-shadow: 0 0 30px #00d4ff; transform: translateY(-5px);
+        }
+
+        /* The Panic Key Hint */
+        .panic-hint { position: fixed; bottom: 10px; right: 10px; color: #333; font-size: 10px; }
     </style>
 </head>
 <body>
     <canvas id="star-canvas"></canvas>
-    <div class="container">
+
+    <div class="ui-layer">
         <h1>NexSTEP</h1>
-        <p>Advanced Game Environment & Proxy Hub</p>
-        <button class="launch-btn" onclick="openCloaked()">Initiate Launch</button>
+        <p>GALAXY EDITION • UNBLOCKED</p>
+
+        <div class="game-grid">
+            <!-- ADD YOUR GAME LINKS BELOW -->
+            <a href="games/paperio2.html" class="game-card">Paper.io 2</a>
+            <a href="games/whg1.html" class="game-card">Hardest Game</a>
+            <a href="games/snake.html" class="game-card">NexSTEP Snake</a>
+            <a href="games/wordle.html" class="game-card">Wordle</a>
+            <a href="games/2048.html" class="game-card">2048</a>
+            <a href="proxies.html" class="game-card">GALAXY PROXY</a>
+        </div>
     </div>
+
+    <div class="panic-hint">Press [ESC] to Panic Close</div>
 
     <script>
         // 1. STARFIELD ANIMATION
         const canvas = document.getElementById('star-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [];
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        window.addEventListener('resize', resize);
+        resize();
 
         class Star {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2;
-                this.speed = Math.random() * 0.5;
-            }
-            draw() {
-                ctx.fillStyle = "#fff";
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            update() {
-                this.y += this.speed;
-                if (this.y > canvas.height) this.y = 0;
+            constructor() { this.x = Math.random()*canvas.width; this.y = Math.random()*canvas.height; this.z = Math.random()*canvas.width; }
+            move() { this.z -= 2; if(this.z <= 0) this.z = canvas.width; }
+            show() {
+                let sx = (this.x - canvas.width/2) * (canvas.width/this.z) + canvas.width/2;
+                let sy = (this.y - canvas.height/2) * (canvas.width/this.z) + canvas.height/2;
+                let r = (1 - this.z/canvas.width) * 3;
+                ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
             }
         }
+        for(let i=0; i<400; i++) stars.push(new Star());
+        const draw = () => { ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s=>{s.move(); s.show();}); requestAnimationFrame(draw); };
+        draw();
 
-        function init() {
-            resize();
-            stars = [];
-            for (let i = 0; i < 200; i++) stars.push(new Star());
-        }
+        // 2. PANIC KEY (Closes tab instantly if someone walks by)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") window.location.replace("https://classroom.google.com");
+        });
 
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            stars.forEach(s => { s.update(); s.draw(); });
-            requestAnimationFrame(animate);
-        }
-
-        window.addEventListener('resize', init);
-        init(); animate();
-
-        // 2. ADVANCED TAB CLOAKING (ABOUT:BLANK)
-        function openCloaked() {
-            const url = window.location.href; // Hosts this exact page into the blank tab
-            const win = window.open('about:blank', '_blank');
-            
-            if (!win) {
-                alert("Pop-up blocked! Please allow pop-ups to use Cloak Mode.");
-                return;
+        // 3. AUTO-CLOAK ON LOAD
+        // This keeps the URL as "about:blank" in the top bar
+        (function() {
+            if (window.location.href.indexOf('about:blank') === -1 && window.top === window.self) {
+                const win = window.open();
+                win.document.body.style.margin = '0';
+                win.document.body.style.height = '100vh';
+                const iframe = win.document.createElement('iframe');
+                iframe.style.border = 'none'; iframe.style.width = '100%'; iframe.style.height = '100%';
+                iframe.src = window.location.href;
+                win.document.body.appendChild(iframe);
+                window.location.replace('https://google.com'); // Leaves the original tab on Google
             }
-
-            // Fake identity for the tab
-            win.document.title = "Google Drive";
-            const favicon = win.document.createElement('link');
-            favicon.rel = 'icon';
-            favicon.href = 'https://ssl.gstatic.com';
-            win.document.head.appendChild(favicon);
-
-            // Fullscreen Iframe Injection
-            const iframe = win.document.createElement('iframe');
-            iframe.style.cssText = "position:fixed;top:0;left:0;bottom:0;right:0;width:100%;height:100%;border:none;margin:0;padding:0;overflow:hidden;z-index:999999;";
-            
-            // Critical: Using a Blob to bypass X-Frame restrictions
-            const htmlContent = document.documentElement.outerHTML;
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            iframe.src = URL.createObjectURL(blob);
-
-            win.document.body.appendChild(iframe);
-
-            // Redirect original tab to a safe site
-            window.location.replace("https://google.com");
-        }
+        })();
     </script>
 </body>
 </html>
