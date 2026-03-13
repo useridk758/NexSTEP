@@ -12,7 +12,7 @@
             font-family: 'Segoe UI', sans-serif; color: #fff;
         }
 
-        /* Moving Starfield Background */
+        /* Deep Space Starfield */
         #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
 
         .ui-layer {
@@ -24,7 +24,7 @@
         }
 
         h1 { font-size: 4rem; letter-spacing: 12px; margin: 0; text-shadow: 0 0 20px #00d4ff; color: #00d4ff; }
-        p { color: #555; letter-spacing: 2px; margin-bottom: 30px; }
+        p { color: #555; letter-spacing: 2px; margin-bottom: 30px; font-weight: bold; }
 
         .game-grid {
             display: grid; grid-template-columns: repeat(3, 1fr);
@@ -35,6 +35,7 @@
             padding: 20px; background: rgba(255,255,255,0.05);
             border: 1px solid rgba(0,212,255,0.2); border-radius: 15px;
             cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff;
+            font-weight: bold; text-transform: uppercase;
         }
 
         .game-card:hover {
@@ -42,8 +43,7 @@
             box-shadow: 0 0 30px #00d4ff; transform: translateY(-5px);
         }
 
-        /* The Panic Key Hint */
-        .panic-hint { position: fixed; bottom: 10px; right: 10px; color: #333; font-size: 10px; }
+        .panic-hint { position: fixed; bottom: 15px; right: 15px; color: #333; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -51,23 +51,23 @@
 
     <div class="ui-layer">
         <h1>NexSTEP</h1>
-        <p>GALAXY EDITION • UNBLOCKED</p>
+        <p>GALAXY EDITION • CLOAKED ACCESS</p>
 
         <div class="game-grid">
-            <!-- ADD YOUR GAME LINKS BELOW -->
+            <!-- Ensure these filenames match the ones in your GitHub repository -->
             <a href="games/paperio2.html" class="game-card">Paper.io 2</a>
             <a href="games/whg1.html" class="game-card">Hardest Game</a>
             <a href="games/snake.html" class="game-card">NexSTEP Snake</a>
             <a href="games/wordle.html" class="game-card">Wordle</a>
             <a href="games/2048.html" class="game-card">2048</a>
-            <a href="proxies.html" class="game-card">GALAXY PROXY</a>
+            <a href="games/8ball.html" class="game-card">8-Ball Pool</a>
         </div>
     </div>
 
     <div class="panic-hint">Press [ESC] to Panic Close</div>
 
     <script>
-        // 1. STARFIELD ANIMATION
+        // 1. STARFIELD ANIMATION LOGIC
         const canvas = document.getElementById('star-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [];
@@ -76,38 +76,71 @@
         resize();
 
         class Star {
-            constructor() { this.x = Math.random()*canvas.width; this.y = Math.random()*canvas.height; this.z = Math.random()*canvas.width; }
-            move() { this.z -= 2; if(this.z <= 0) this.z = canvas.width; }
+            constructor() { 
+                this.x = Math.random() * canvas.width; 
+                this.y = Math.random() * canvas.height; 
+                this.z = Math.random() * canvas.width; 
+            }
+            move() { 
+                this.z -= 1.5; 
+                if(this.z <= 0) this.z = canvas.width; 
+            }
             show() {
                 let sx = (this.x - canvas.width/2) * (canvas.width/this.z) + canvas.width/2;
                 let sy = (this.y - canvas.height/2) * (canvas.width/this.z) + canvas.height/2;
-                let r = (1 - this.z/canvas.width) * 3;
-                ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
+                let r = (1 - this.z/canvas.width) * 2.5;
+                ctx.fillStyle = "rgba(255, 255, 255, " + (1 - this.z/canvas.width) + ")"; 
+                ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
             }
         }
-        for(let i=0; i<400; i++) stars.push(new Star());
-        const draw = () => { ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s=>{s.move(); s.show();}); requestAnimationFrame(draw); };
+
+        for(let i=0; i<450; i++) stars.push(new Star());
+        const draw = () => { 
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); 
+            stars.forEach(s=>{s.move(); s.show();}); 
+            requestAnimationFrame(draw); 
+        };
         draw();
 
-        // 2. PANIC KEY (Closes tab instantly if someone walks by)
+        // 2. PANIC KEY: Redirects current tab to Google Classroom instantly
         window.addEventListener('keydown', (e) => {
             if (e.key === "Escape") window.location.replace("https://classroom.google.com");
         });
 
-        // 3. AUTO-CLOAK ON LOAD
-        // This keeps the URL as "about:blank" in the top bar
-        (function() {
-            if (window.location.href.indexOf('about:blank') === -1 && window.top === window.self) {
+        // 3. CLOAKING PROMPT
+        function initiateCloak() {
+            // Check if we are already in the about:blank tab to prevent loops
+            if (window.parent !== window.self) return;
+
+            const userChoice = confirm("Would you like to proceed to about:blank mode for stealth browsing?");
+            
+            if (userChoice) {
                 const win = window.open();
+                if (!win) {
+                    alert("Pop-up blocked! Please allow pop-ups for NexSTEP to work.");
+                    return;
+                }
+                
                 win.document.body.style.margin = '0';
                 win.document.body.style.height = '100vh';
+                win.document.body.style.overflow = 'hidden';
+                
                 const iframe = win.document.createElement('iframe');
-                iframe.style.border = 'none'; iframe.style.width = '100%'; iframe.style.height = '100%';
-                iframe.src = window.location.href;
+                iframe.style.border = 'none'; 
+                iframe.style.width = '100%'; 
+                iframe.style.height = '100%';
+                iframe.style.margin = '0';
+                iframe.src = window.location.href; // Injects this page into the new tab
+                
                 win.document.body.appendChild(iframe);
-                window.location.replace('https://google.com'); // Leaves the original tab on Google
+                
+                // Switch the original "visible" tab to a safe site
+                window.location.replace('https://google.com'); 
             }
-        })();
+        }
+
+        // Run the prompt as soon as the page is ready
+        window.onload = initiateCloak;
     </script>
 </body>
 </html>
