@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexSTEP | Loading...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #050505;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        /* Animated Galaxy Background for Launcher */
+        .stars {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            z-index: -1;
+        }
+
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #00d4ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        h1 {
+            font-size: 2rem;
+            letter-spacing: 5px;
+            text-shadow: 0 0 20px #00d4ff;
+            margin: 0;
+        }
+
+        p { color: #888; margin-top: 10px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="content">
+        <div class="loader"></div>
+        <h1>NexSTEP</h1>
+        <p>Initializing Secure Galaxy Environment...</p>
+    </div>
+
+    <script>
+        // Replace this URL with your actual Google Sites URL
+        const destination = "https://sites.google.com";
+
+        function launch() {
+            // Create a new window
+            const win = window.open();
+            if (!win || win.closed) {
+                alert("Pop-ups are blocked! Please allow pop-ups to launch NexSTEP in stealth mode.");
+                return;
+            }
+
+            // Style the new about:blank tab
+            win.document.title = "Classes"; // Sneaky title
+            const link = win.document.createElement('link');
+            link.rel = 'icon';
+            link.href = 'https://ssl.gstatic.com'; // Google Drive Icon
+            win.document.head.appendChild(link);
+
+            // Inject the iframe
+            const iframe = win.document.createElement('iframe');
+            iframe.style.position = "fixed";
+            iframe.style.top = "0";
+            iframe.style.left = "0";
+            iframe.style.bottom = "0";
+            iframe.style.right = "0";
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            iframe.style.border = "none";
+            iframe.style.margin = "0";
+            iframe.style.padding = "0";
+            iframe.style.overflow = "hidden";
+            iframe.style.zIndex = "999999";
+            iframe.src = destination;
+
+            win.document.body.appendChild(iframe);
+            
+            // Redirect the original GitHub page to a "safe" site like Google
+            location.replace("https://google.com");
+        }
+
+        // Auto-launch on load
+        window.onload = launch;
+    </script>
+</body>
+</html>
