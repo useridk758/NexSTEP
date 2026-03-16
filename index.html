@@ -1,146 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Drive</title> <!-- Sneaky Tab Title -->
-    <link rel="icon" href="https://ssl.gstatic.com">
-    <style>
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background: #000; overflow: hidden;
-            font-family: 'Segoe UI', sans-serif; color: #fff;
-        }
+<style>
+    body, html {
+        margin: 0; padding: 0; width: 100%; height: 100%;
+        background: #000; overflow: hidden;
+        font-family: 'Segoe UI', sans-serif; color: #fff;
+    }
 
-        /* Deep Space Starfield */
-        #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+    #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
 
-        .ui-layer {
-            position: relative; z-index: 10;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            height: 100%; text-align: center;
-            background: radial-gradient(circle, rgba(0,212,255,0.05) 0%, rgba(0,0,0,1) 70%);
-        }
+    /* Main UI Layer */
+    .ui-layer {
+        position: relative; z-index: 10;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        height: 100vh; text-align: center;
+        pointer-events: none; /* Let clicks pass through to background if needed */
+    }
 
-        h1 { font-size: 4rem; letter-spacing: 12px; margin: 0; text-shadow: 0 0 20px #00d4ff; color: #00d4ff; }
-        p { color: #555; letter-spacing: 2px; margin-bottom: 30px; font-weight: bold; }
+    h1 { font-size: 5rem; letter-spacing: 15px; margin: 0; text-shadow: 0 0 20px #00d4ff; color: #00d4ff; }
+    p { color: #555; letter-spacing: 3px; font-weight: bold; }
 
-        .game-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 20px; max-width: 800px;
-        }
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+        position: fixed; bottom: 30px; left: 50%;
+        transform: translateX(-50%); z-index: 20;
+        display: flex; gap: 15px;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 10px 20px; border-radius: 50px;
+        border: 1px solid rgba(0, 212, 255, 0.3);
+        backdrop-filter: blur(10px);
+    }
 
-        .game-card {
-            padding: 20px; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(0,212,255,0.2); border-radius: 15px;
-            cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff;
-            font-weight: bold; text-transform: uppercase;
-        }
+    .nav-btn {
+        padding: 8px 20px; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(0,212,255,0.2); border-radius: 20px;
+        cursor: pointer; transition: 0.3s; color: #fff;
+        font-weight: bold; text-transform: uppercase; font-size: 0.8rem;
+    }
 
-        .game-card:hover {
-            background: #00d4ff; color: #000;
-            box-shadow: 0 0 30px #00d4ff; transform: translateY(-5px);
-        }
+    .nav-btn:hover { background: #00d4ff; color: #000; box-shadow: 0 0 15px #00d4ff; }
 
-        .panic-hint { position: fixed; bottom: 15px; right: 15px; color: #333; font-size: 11px; }
-    </style>
-</head>
+    /* Modal Styling */
+    .modal {
+        display: none; position: fixed; z-index: 30;
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9); border: 1px solid #00d4ff;
+        padding: 30px; border-radius: 15px; width: 300px; text-align: center;
+    }
+
+    .modal.active { display: block; }
+    .close-modal { margin-top: 20px; cursor: pointer; color: #00d4ff; font-size: 0.8rem; text-decoration: underline; }
+
+    .game-list-vertical { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+    .game-list-vertical a { color: #fff; text-decoration: none; padding: 5px; border-bottom: 1px solid #222; }
+    .game-list-vertical a:hover { color: #00d4ff; }
+
+    .panic-hint { position: fixed; bottom: 15px; right: 15px; color: #333; font-size: 11px; }
+</style>
+
 <body>
     <canvas id="star-canvas"></canvas>
 
     <div class="ui-layer">
         <h1>NexSTEP</h1>
-        <p>GALAXY EDITION • CLOAKED ACCESS</p>
+        <p>GALAXY EDITION</p>
+    </div>
 
-        <div class="game-grid">
-            <!-- Ensure these filenames match the ones in your GitHub repository -->
-            <a href="games/paperio2.html" class="game-card">Paper.io 2</a>
-            <a href="games/whg1.html" class="game-card">Hardest Game</a>
-            <a href="games/snake.html" class="game-card">NexSTEP Snake</a>
-            <a href="games/wordle.html" class="game-card">Wordle</a>
-            <a href="games/2048.html" class="game-card">2048</a>
-            <a href="games/8ball.html" class="game-card">8-Ball Pool</a>
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <div class="nav-btn" onclick="toggleModal('gamesModal')">Games</div>
+        <div class="nav-btn" onclick="toggleModal('creditsModal')">Credits</div>
+    </div>
+
+    <!-- Games Modal -->
+    <div id="gamesModal" class="modal">
+        <h2 style="color:#00d4ff; margin-top:0;">Library</h2>
+        <div class="game-list-vertical">
+            <a href="games/paperio2.html">Paper.io 2</a>
+            <a href="games/whg1.html">Hardest Game</a>
+            <a href="games/snake.html">NexSTEP Snake</a>
+            <a href="games/wordle.html">Wordle</a>
+            <a href="games/2048.html">2048</a>
+            <a href="games/8ball.html">8-Ball Pool</a>
         </div>
+        <div class="close-modal" onclick="toggleModal('gamesModal')">[ CLOSE ]</div>
+    </div>
+
+    <!-- Credits Modal -->
+    <div id="creditsModal" class="modal">
+        <h2 style="color:#00d4ff; margin-top:0;">Credits</h2>
+        <p style="color: #fff;">Everything made by <strong>Dunko</strong></p>
+        <div class="close-modal" onclick="toggleModal('creditsModal')">[ CLOSE ]</div>
     </div>
 
     <div class="panic-hint">Press [ESC] to Panic Close</div>
 
     <script>
-        // 1. STARFIELD ANIMATION LOGIC
-        const canvas = document.getElementById('star-canvas');
-        const ctx = canvas.getContext('2d');
-        let stars = [];
-        const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Star {
-            constructor() { 
-                this.x = Math.random() * canvas.width; 
-                this.y = Math.random() * canvas.height; 
-                this.z = Math.random() * canvas.width; 
-            }
-            move() { 
-                this.z -= 1.5; 
-                if(this.z <= 0) this.z = canvas.width; 
-            }
-            show() {
-                let sx = (this.x - canvas.width/2) * (canvas.width/this.z) + canvas.width/2;
-                let sy = (this.y - canvas.height/2) * (canvas.width/this.z) + canvas.height/2;
-                let r = (1 - this.z/canvas.width) * 2.5;
-                ctx.fillStyle = "rgba(255, 255, 255, " + (1 - this.z/canvas.width) + ")"; 
-                ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
-            }
+        // Modal Logic
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            const isVisible = modal.classList.contains('active');
+            // Close all modals first
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+            // Toggle the clicked one
+            if (!isVisible) modal.classList.add('active');
         }
 
-        for(let i=0; i<450; i++) stars.push(new Star());
-        const draw = () => { 
-            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); 
-            stars.forEach(s=>{s.move(); s.show();}); 
-            requestAnimationFrame(draw); 
-        };
-        draw();
-
-        // 2. PANIC KEY: Redirects current tab to Google Classroom instantly
-        window.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") window.location.replace("https://classroom.google.com");
-        });
-
-        // 3. CLOAKING PROMPT
-        function initiateCloak() {
-            // Check if we are already in the about:blank tab to prevent loops
-            if (window.parent !== window.self) return;
-
-            const userChoice = confirm("Would you like to proceed to about:blank mode for stealth browsing?");
-            
-            if (userChoice) {
-                const win = window.open();
-                if (!win) {
-                    alert("Pop-up blocked! Please allow pop-ups for NexSTEP to work.");
-                    return;
-                }
-                
-                win.document.body.style.margin = '0';
-                win.document.body.style.height = '100vh';
-                win.document.body.style.overflow = 'hidden';
-                
-                const iframe = win.document.createElement('iframe');
-                iframe.style.border = 'none'; 
-                iframe.style.width = '100%'; 
-                iframe.style.height = '100%';
-                iframe.style.margin = '0';
-                iframe.src = window.location.href; // Injects this page into the new tab
-                
-                win.document.body.appendChild(iframe);
-                
-                // Switch the original "visible" tab to a safe site
-                window.location.replace('https://google.com'); 
-            }
-        }
-
-        // Run the prompt as soon as the page is ready
-        window.onload = initiateCloak;
+        /* Keep all your existing Starfield, Panic Key, and Cloaking JS below here */
+        // ... (Paste your original <script> logic for the stars and cloaking)
     </script>
 </body>
-</html>
