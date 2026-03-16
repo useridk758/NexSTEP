@@ -3,132 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Drive</title>
+    <title>Google Drive</title> <!-- Sneaky Tab Title -->
     <link rel="icon" href="https://ssl.gstatic.com">
     <style>
         :root { --accent: #00d4ff; --bg: rgba(0, 0, 0, 0.95); }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: #fff; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #000; overflow: hidden; 
+            font-family: 'Segoe UI', sans-serif; color: #fff; 
+        }
         
+        /* 1. STARFIELD BACKGROUND */
         #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* Main UI */
+        /* 2. MAIN UI LAYER */
         .ui-layer {
-            position: relative; z-index: 10; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; height: 100vh; text-align: center;
-            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s;
+            position: relative; z-index: 10; 
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; 
+            height: 100vh; text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s;
         }
-        .ui-layer.blur { transform: scale(0.9); opacity: 0; pointer-events: none; }
+        /* Transition effect when menu opens */
+        .ui-layer.blur { transform: scale(0.85); opacity: 0; pointer-events: none; }
 
         h1 { font-size: 5rem; letter-spacing: 15px; margin: 0; text-shadow: 0 0 20px var(--accent); color: var(--accent); }
-        .sub-text { color: #555; letter-spacing: 3px; font-weight: bold; }
+        .sub-text { color: #555; letter-spacing: 3px; font-weight: bold; margin-top: 10px; }
 
-        /* Bottom Nav Bar */
+        /* 3. BOTTOM NAVIGATION */
         .bottom-nav {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             z-index: 100; display: flex; gap: 15px; background: rgba(0, 0, 0, 0.6);
             padding: 10px 20px; border-radius: 50px; border: 1px solid rgba(0, 212, 255, 0.3);
-            backdrop-filter: blur(10px); transition: 0.5s;
+            backdrop-filter: blur(10px);
         }
 
         .nav-btn {
-            padding: 8px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,212,255,0.2);
-            border-radius: 20px; cursor: pointer; transition: 0.3s; color: #fff;
-            font-weight: bold; text-transform: uppercase; font-size: 0.8rem;
+            padding: 8px 22px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 20px; cursor: pointer; transition: 0.3s ease; color: #fff;
+            font-weight: bold; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;
         }
         .nav-btn:hover { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent); }
 
-        /* Full Screen Overlay System */
+        /* 4. FULL SCREEN OVERLAYS (Transitions) */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg); z-index: 50; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transform: translateY(20px);
+            opacity: 0; pointer-events: none; transform: scale(1.1);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .overlay.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+        .overlay.active { opacity: 1; pointer-events: all; transform: scale(1); }
 
-        /* Game Card Styling */
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 30px; width: 80%; max-width: 1000px; }
+        /* Game Grid */
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 40px; width: 80%; max-width: 900px; }
         .game-item { 
             text-decoration: none; color: white; display: flex; flex-direction: column; align-items: center; 
-            transition: 0.3s; padding: 15px; border-radius: 15px; background: rgba(255,255,255,0.03);
+            transition: transform 0.3s ease, background 0.3s; padding: 20px; border-radius: 20px; 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
         }
-        .game-item:hover { transform: scale(1.1); background: rgba(0,212,255,0.1); }
-        .game-item img { width: 100px; height: 100px; border-radius: 20px; margin-bottom: 10px; border: 2px solid var(--accent); }
+        .game-item:hover { transform: translateY(-10px); background: rgba(0,212,255,0.1); border-color: var(--accent); }
+        .game-item img { width: 110px; height: 110px; border-radius: 22px; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .game-item span { font-weight: bold; letter-spacing: 1px; text-transform: uppercase; font-size: 0.9rem; }
 
-        .close-overlay { margin-top: 50px; cursor: pointer; color: var(--accent); font-weight: bold; letter-spacing: 2px; }
+        .close-overlay { margin-top: 60px; cursor: pointer; color: var(--accent); font-weight: bold; letter-spacing: 3px; font-size: 0.8rem; text-transform: uppercase; }
+        .close-overlay:hover { text-decoration: underline; }
 
+        /* Panic Hint */
         .panic-hint { position: fixed; bottom: 15px; right: 15px; color: #333; font-size: 11px; z-index: 110; }
     </style>
 </head>
 <body>
     <canvas id="star-canvas"></canvas>
 
+    <!-- Main Viewport -->
     <div id="main-ui" class="ui-layer">
         <h1>NexSTEP</h1>
-        <div class="sub-text">GALAXY EDITION</div>
+        <div class="sub-text">GALAXY EDITION • V3.0</div>
     </div>
 
-    <!-- Nav -->
+    <!-- Persistent Bottom Bar -->
     <div class="bottom-nav">
         <div class="nav-btn" onclick="openMenu('gamesMenu')">Games</div>
         <div class="nav-btn" onclick="openMenu('creditsMenu')">Credits</div>
         <div class="nav-btn" onclick="openMenu('settingsMenu')">Settings</div>
     </div>
 
-    <!-- Games Fullscreen -->
+    <!-- Fullscreen Games Menu -->
     <div id="gamesMenu" class="overlay">
-        <h2 style="color: var(--accent); font-size: 3rem; margin-bottom: 40px;">LIBRARY</h2>
+        <h2 style="color: var(--accent); font-size: 3.5rem; margin-bottom: 50px; letter-spacing: 10px;">LIBRARY</h2>
         <div class="game-grid">
-            <a href="https://useridk758.github.io/my-html-games/" class="game-item">
-                <img src="https://img.utdstc.com/icon/983/22a/98322a3b2be892eed31589906ffd949b68bcccc9a21ba562987965b5ec6bc6de:200" alt="1v1.lol">
+            <a href="https://useridk758.github.io" class="game-item">
+                <img src="https://img.utdstc.com" alt="1v1.lol">
                 <span>1v1.LOL</span>
             </a>
+            <!-- Add more <a> tags here for more games -->
         </div>
-        <div class="close-overlay" onclick="closeMenus()">[ BACK TO GALAXY ]</div>
+        <div class="close-overlay" onclick="closeMenus()">[ Return to Orbit ]</div>
     </div>
 
-    <!-- Credits Fullscreen -->
+    <!-- Fullscreen Credits Menu -->
     <div id="creditsMenu" class="overlay">
-        <h2 style="color: var(--accent); font-size: 3rem;">CREDITS</h2>
-        <p style="font-size: 1.5rem;">Everything made by <span style="color: var(--accent); font-weight: bold;">Dunko</span></p>
-        <div class="close-overlay" onclick="closeMenus()">[ BACK TO GALAXY ]</div>
+        <h2 style="color: var(--accent); font-size: 3.5rem; letter-spacing: 10px;">CREDITS</h2>
+        <p style="font-size: 1.8rem; margin-top: 20px;">System Architect</p>
+        <p style="font-size: 2.5rem; color: var(--accent); font-weight: bold; text-shadow: 0 0 15px var(--accent);">DUNKO</p>
+        <div class="close-overlay" onclick="closeMenus()">[ Return to Orbit ]</div>
     </div>
 
-    <!-- Settings Fullscreen -->
+    <!-- Fullscreen Settings Menu -->
     <div id="settingsMenu" class="overlay">
-        <h2 style="color: var(--accent); font-size: 3rem;">SETTINGS</h2>
-        <p>Panic Key: <strong>ESC</strong></p>
-        <p>Current Tab: <strong>Google Drive Cloak</strong></p>
-        <div class="close-overlay" onclick="closeMenus()">[ BACK TO GALAXY ]</div>
+        <h2 style="color: var(--accent); font-size: 3.5rem; letter-spacing: 10px;">SETTINGS</h2>
+        <div style="text-align: left; background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid #222;">
+            <p>Panic Key: <span style="color:var(--accent)">[ESC]</span></p>
+            <p>Panic Destination: <span style="color:var(--accent)">Google Classroom</span></p>
+            <p>Stealth Mode: <span style="color:var(--accent)">Enabled (About:Blank)</span></p>
+            <p>UI Animations: <span style="color:var(--accent)">Active</span></p>
+        </div>
+        <div class="close-overlay" onclick="closeMenus()">[ Return to Orbit ]</div>
     </div>
 
     <div class="panic-hint">Press [ESC] to Panic Close</div>
 
     <script>
-        // 1. CLOAKING
+        /**
+         * 1. CLOAKING (ABOUT:BLANK)
+         * Opens the site in a blank tab to hide it from history/GoGuardian.
+         */
         window.onload = function() {
-            if (window.parent !== window.self) return;
-            if (confirm("Proceed to about:blank mode for stealth?")) {
+            if (window.parent !== window.self) return; // Don't run inside the cloak
+
+            const userChoice = confirm("Initialize NexSTEP in stealth mode (about:blank)?");
+            if (userChoice) {
                 const win = window.open();
-                if (!win) return alert("Pop-up blocked!");
+                if (!win) {
+                    alert("Pop-up blocked! Please enable pop-ups for NexSTEP to function.");
+                    return;
+                }
+                
+                // Prepare the blank tab
                 win.document.body.style.margin = '0';
                 win.document.body.style.height = '100vh';
                 win.document.body.style.overflow = 'hidden';
+                
+                // Inject the iframe containing this current site
                 const iframe = win.document.createElement('iframe');
-                iframe.style = "border:none;width:100%;height:100%;";
-                iframe.src = window.location.href;
+                iframe.style.border = 'none'; 
+                iframe.style.width = '100%'; 
+                iframe.style.height = '100%';
+                iframe.src = window.location.href; 
+                
                 win.document.body.appendChild(iframe);
-                window.location.replace('https://google.com');
+                
+                // Mask the original tab
+                window.location.replace('https://google.com'); 
             }
         };
 
-        // 2. PANIC KEY
+        /**
+         * 2. PANIC KEY
+         * Instantly redirects the tab to a safe academic site.
+         */
         window.addEventListener('keydown', (e) => {
             if (e.key === "Escape") window.location.replace("https://classroom.google.com");
         });
 
-        // 3. UI TRANSITIONS
+        /**
+         * 3. UI TRANSITIONS
+         */
         function openMenu(id) {
             document.getElementById('main-ui').classList.add('blur');
             document.getElementById(id).classList.add('active');
@@ -139,7 +180,9 @@
             document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active'));
         }
 
-        // 4. STARFIELD
+        /**
+         * 4. STARFIELD ANIMATION ENGINE
+         */
         const canvas = document.getElementById('star-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [];
@@ -147,21 +190,29 @@
         window.addEventListener('resize', resize); resize();
 
         class Star {
-            constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.z = Math.random() * canvas.width; }
-            move() { this.z -= 1.5; if(this.z <= 0) this.z = canvas.width; }
+            constructor() { 
+                this.x = Math.random() * canvas.width; 
+                this.y = Math.random() * canvas.height; 
+                this.z = Math.random() * canvas.width; 
+            }
+            move() { 
+                this.z -= 2.0; 
+                if(this.z <= 0) this.z = canvas.width; 
+            }
             show() {
                 let sx = (this.x - canvas.width/2) * (canvas.width/this.z) + canvas.width/2;
                 let sy = (this.y - canvas.height/2) * (canvas.width/this.z) + canvas.height/2;
-                let r = (1 - this.z/canvas.width) * 2.5;
-                ctx.fillStyle = "rgba(255, 255, 255, " + (1 - this.z/canvas.width) + ")";
+                let r = (1 - this.z/canvas.width) * 3;
+                ctx.fillStyle = "rgba(255, 255, 255, " + (1 - this.z/canvas.width) + ")"; 
                 ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
             }
         }
-        for(let i=0; i<450; i++) stars.push(new Star());
-        const draw = () => {
-            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
-            stars.forEach(s=>{s.move(); s.show();});
-            requestAnimationFrame(draw);
+
+        for(let i=0; i<500; i++) stars.push(new Star());
+        const draw = () => { 
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); 
+            stars.forEach(s=>{s.move(); s.show();}); 
+            requestAnimationFrame(draw); 
         };
         draw();
     </script>
