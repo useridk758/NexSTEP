@@ -15,25 +15,25 @@
         
         #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* MAIN UI LAYER */
+        /* MAIN UI */
         .ui-layer {
             position: relative; z-index: 10; 
             display: flex; flex-direction: column;
             align-items: center; justify-content: center; 
             height: 100vh; text-align: center;
-            transition: transform 0.7s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.7s ease;
+            transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease;
         }
-        .ui-layer.blur { transform: scale(0.9); opacity: 0; pointer-events: none; }
+        .ui-layer.blur { transform: translateY(-50px) scale(0.9); opacity: 0; pointer-events: none; }
 
         h1 { font-size: 5rem; letter-spacing: 15px; margin: 0; text-shadow: 0 0 25px var(--accent); color: var(--accent); }
         .sub-text { color: #555; letter-spacing: 3px; font-weight: bold; margin-top: 10px; }
 
-        /* BOTTOM NAVIGATION */
+        /* BOTTOM NAV */
         .bottom-nav {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             z-index: 100; display: flex; gap: 15px; background: rgba(0, 0, 0, 0.7);
             padding: 10px 20px; border-radius: 50px; border: 1px solid rgba(0, 212, 255, 0.3);
-            backdrop-filter: blur(15px); transition: 0.5s ease;
+            backdrop-filter: blur(15px);
         }
 
         .nav-btn {
@@ -54,19 +54,19 @@
         .overlay.active { opacity: 1; pointer-events: all; transform: translateY(0); }
 
         /* GAME GRID */
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 40px; width: 85%; max-width: 1000px; }
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 40px; width: 85%; max-width: 1000px; justify-content: center; }
         .game-item { 
             text-decoration: none; color: white; display: flex; flex-direction: column; align-items: center; 
             transition: 0.4s; padding: 25px; border-radius: 25px; 
             background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
         }
-        .game-item:hover { transform: scale(1.05); background: rgba(0,212,255,0.15); border-color: var(--accent); box-shadow: 0 0 30px rgba(0,212,255,0.2); }
-        .game-item img { width: 120px; height: 120px; border-radius: 25px; margin-bottom: 15px; border: 2px solid transparent; transition: 0.3s; }
-        .game-item:hover img { border-color: var(--accent); }
-        .game-item span { font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .game-item:hover { transform: scale(1.05); background: rgba(0,212,255,0.15); border-color: var(--accent); }
+        .game-item img { width: 120px; height: 120px; border-radius: 25px; margin-bottom: 15px; border: 2px solid transparent; }
+        .game-item.locked { opacity: 0.4; cursor: not-allowed; }
+        .game-item.locked img { filter: grayscale(1); }
 
         .close-overlay { margin-top: 60px; cursor: pointer; color: var(--accent); font-weight: bold; letter-spacing: 4px; font-size: 0.9rem; text-transform: uppercase; transition: 0.3s; }
-        .close-overlay:hover { letter-spacing: 6px; text-shadow: 0 0 10px var(--accent); }
+        .close-overlay:hover { letter-spacing: 6px; }
 
         .panic-hint { position: fixed; bottom: 15px; right: 15px; color: #444; font-size: 11px; z-index: 200; }
     </style>
@@ -89,10 +89,16 @@
     <div id="gamesMenu" class="overlay">
         <h2 style="color: var(--accent); font-size: 3rem; margin-bottom: 50px; letter-spacing: 8px;">GAME VAULT</h2>
         <div class="game-grid">
-            <a href="https://useridk758.github.io" class="game-item">
+            <!-- ACTIVE GAME -->
+            <a href="https://useridk758.github.io/my-html-games/" class="game-item">
                 <img src="https://img.utdstc.com" alt="1v1.lol">
                 <span>1v1.LOL</span>
             </a>
+            <!-- COMING SOON -->
+            <div class="game-item locked">
+                <img src="https://via.placeholder.com?" alt="Locked">
+                <span>COMING SOON</span>
+            </div>
         </div>
         <div class="close-overlay" onclick="closeMenus()">[ BACK TO SYSTEM ]</div>
     </div>
@@ -111,7 +117,7 @@
         <div style="background: rgba(255,255,255,0.05); padding: 40px; border-radius: 30px; border: 1px solid #333; width: 300px;">
             <p style="display:flex; justify-content:space-between;">Panic Key: <b style="color:var(--accent)">ESC</b></p>
             <p style="display:flex; justify-content:space-between;">Cloak: <b style="color:var(--accent)">About:Blank</b></p>
-            <p style="display:flex; justify-content:space-between;">Animations: <b style="color:var(--accent)">Active</b></p>
+            <p style="display:flex; justify-content:space-between;">Auto-Clean: <b style="color:var(--accent)">ON</b></p>
         </div>
         <div class="close-overlay" onclick="closeMenus()">[ BACK TO SYSTEM ]</div>
     </div>
@@ -119,31 +125,21 @@
     <div class="panic-hint">Press [ESC] to Panic</div>
 
     <script>
-        // 1. IMMEDIATE ABOUT:BLANK CLOAKING
+        // 1. CLOAKING PROMPT
         window.onload = function() {
-            // Check if we are the top-level window (not already inside the iframe)
             if (window.top === window.self) {
-                const userChoice = confirm("Entering NexSTEP. Proceed to about:blank mode for stealth?");
-                if (userChoice) {
+                const proceed = confirm("Initialize NexSTEP in stealth mode (about:blank)?");
+                if (proceed) {
                     const win = window.open();
-                    if (!win) {
-                        alert("Pop-up blocked! Please enable pop-ups for NexSTEP to work.");
-                        return;
-                    }
-                    
+                    if (!win) { alert("Enable pop-ups for NexSTEP to function."); return; }
                     win.document.body.style.margin = '0';
                     win.document.body.style.height = '100vh';
                     win.document.body.style.overflow = 'hidden';
-                    win.document.title = "Google Drive"; // Change new tab's title
-
                     const iframe = win.document.createElement('iframe');
-                    iframe.style.border = 'none'; 
-                    iframe.style.width = '100%'; 
-                    iframe.style.height = '100%';
-                    iframe.src = window.location.href; // Re-load this code in the blank tab
-                    
+                    iframe.style = "border:none;width:100%;height:100%;";
+                    iframe.src = window.location.href;
                     win.document.body.appendChild(iframe);
-                    window.location.replace('https://google.com'); // Mask original tab
+                    window.location.replace('https://google.com');
                 }
             }
         };
@@ -153,47 +149,38 @@
             if (e.key === "Escape") window.location.replace("https://classroom.google.com");
         });
 
-        // 3. FULLSCREEN TRANSITIONS
+        // 3. UI ENGINE
         function openMenu(id) {
             document.getElementById('main-ui').classList.add('blur');
             document.getElementById(id).classList.add('active');
         }
-
         function closeMenus() {
             document.getElementById('main-ui').classList.remove('blur');
             document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active'));
         }
 
-        // 4. STARFIELD ENGINE
+        // 4. STARFIELD
         const canvas = document.getElementById('star-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [];
         const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         window.addEventListener('resize', resize); resize();
-
         class Star {
-            constructor() { 
-                this.x = Math.random() * canvas.width; 
-                this.y = Math.random() * canvas.height; 
-                this.z = Math.random() * canvas.width; 
-            }
-            move() { 
-                this.z -= 2; 
-                if(this.z <= 0) this.z = canvas.width; 
-            }
+            constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.z = Math.random() * canvas.width; }
+            move() { this.z -= 2; if(this.z <= 0) this.z = canvas.width; }
             show() {
                 let sx = (this.x - canvas.width/2) * (canvas.width/this.z) + canvas.width/2;
                 let sy = (this.y - canvas.height/2) * (canvas.width/this.z) + canvas.height/2;
                 let r = (1 - this.z/canvas.width) * 2.5;
-                ctx.fillStyle = "rgba(255, 255, 255, " + (1 - this.z/canvas.width) + ")"; 
+                ctx.fillStyle = "rgba(255, 255, 255, " + (1 - this.z/canvas.width) + ")";
                 ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
             }
         }
         for(let i=0; i<400; i++) stars.push(new Star());
-        const draw = () => { 
-            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); 
-            stars.forEach(s=>{s.move(); s.show();}); 
-            requestAnimationFrame(draw); 
+        const draw = () => {
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            stars.forEach(s=>{s.move(); s.show();});
+            requestAnimationFrame(draw);
         };
         draw();
     </script>
