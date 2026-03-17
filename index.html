@@ -11,12 +11,12 @@
         #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
 
         /* MAIN UI */
-        .ui-layer { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; transition: 0.7s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.7s; }
+        .ui-layer { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; transition: 0.7s; }
         .ui-layer.blur { transform: scale(0.9); opacity: 0; pointer-events: none; }
         h1 { font-size: 5rem; letter-spacing: 15px; margin: 0; text-shadow: 0 0 25px var(--accent); color: var(--accent); }
 
         /* COUNTERS */
-        .counter-container { display: flex; gap: 20px; margin-top: 15px; font-weight: bold; letter-spacing: 2px; font-size: 0.8rem; color: #777; }
+        .counter-container { display: flex; gap: 20px; margin-top: 15px; font-weight: bold; font-size: 0.8rem; color: #777; }
         .counter-item b { color: var(--accent); }
 
         /* BOTTOM NAV */
@@ -28,31 +28,36 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 150; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transform: translateY(100%); transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
         .overlay.active { opacity: 1; pointer-events: all; transform: translateY(0); }
 
-        /* SEARCH UI */
-        .search-box { width: 500px; max-width: 90%; text-align: center; }
+        /* SEARCH & PROXY */
+        .search-box { width: 600px; max-width: 90%; text-align: center; }
         .search-input { width: 100%; padding: 15px 25px; border-radius: 30px; border: 2px solid var(--accent); background: transparent; color: #fff; font-size: 1.1rem; outline: none; margin-bottom: 20px; text-align: center; }
-        .shortcuts { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 30px; }
-        .shortcut-link { padding: 8px 18px; border: 1px solid #333; border-radius: 15px; color: #888; text-decoration: none; transition: 0.3s; font-size: 0.85rem; }
-        .shortcut-link:hover { border-color: var(--accent); color: #fff; background: rgba(0,212,255,0.05); }
+        .shortcuts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+        .shortcut-link { padding: 8px 15px; border: 1px solid #333; border-radius: 15px; color: #aaa; text-decoration: none; transition: 0.3s; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .shortcut-link:hover { border-color: var(--accent); color: #fff; background: rgba(0,212,255,0.1); }
+        .add-btn { background: var(--accent); color: #000; font-weight: bold; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 1.2rem; }
 
-        /* GAMES GRID */
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; width: 80%; justify-content: center; }
-        .game-item { text-decoration: none; color: white; display: flex; flex-direction: column; align-items: center; transition: 0.3s; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 20px; }
-        .game-item:hover { transform: scale(1.05); background: rgba(0,212,255,0.1); }
-        .game-item img { width: 100px; height: 100px; border-radius: 20px; margin-bottom: 10px; border: 1px solid var(--accent); }
+        /* PROXY VIEWER */
+        #proxy-viewer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300; background: #fff; display: none; }
+        #proxy-frame { width: 100%; height: 100%; border: none; }
+        .close-proxy { position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: var(--accent); padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 310; border: 1px solid var(--accent); }
 
-        .close-btn { margin-top: 50px; cursor: pointer; color: var(--accent); font-weight: bold; letter-spacing: 3px; text-transform: uppercase; }
-        .panic-hint { position: fixed; bottom: 15px; right: 15px; color: #333; font-size: 11px; z-index: 210; }
+        .close-btn { margin-top: 40px; cursor: pointer; color: var(--accent); font-weight: bold; letter-spacing: 2px; }
     </style>
 </head>
 <body>
     <canvas id="star-canvas"></canvas>
 
+    <!-- PROXY IFRAME CONTAINER -->
+    <div id="proxy-viewer">
+        <div class="close-proxy" onclick="closeProxy()">[ EXIT SEARCH ]</div>
+        <iframe id="proxy-frame"></iframe>
+    </div>
+
     <div id="main-ui" class="ui-layer">
         <h1>NexSTEP</h1>
         <div class="counter-container">
             <div class="counter-item">Online: <b id="online-count">1</b></div>
-            <div class="counter-item">Total Visits: <b id="visit-count">1,024</b></div>
+            <div class="counter-item">Visits: <b id="visit-count">1,024</b></div>
         </div>
         <div style="color:#555; margin-top:10px; font-weight:bold; letter-spacing:3px;">GALAXY EDITION</div>
     </div>
@@ -68,64 +73,47 @@
     <div id="searchMenu" class="overlay">
         <div class="search-box">
             <h2 style="color:var(--accent); letter-spacing:5px;">SEARCH WITH FREEDOM</h2>
-            <input type="text" class="search-input" placeholder="Search the web..." onkeydown="if(event.key==='Enter') window.open('https://google.com)">
-            <div class="shortcuts">
-                <a href="https://github.com" target="_blank" class="shortcut-link">GitHub</a>
-                <a href="https://tiktok.com" target="_blank" class="shortcut-link">TikTok</a>
-                <a href="https://youtube.com" target="_blank" class="shortcut-link">YouTube</a>
-                <a href="https://guns.lol" target="_blank" class="shortcut-link">Guns.lol</a>
-                <a href="https://classroom.google.com" target="_blank" class="shortcut-link">Classroom</a>
+            <input type="text" id="searchBar" class="search-input" placeholder="Enter URL or Search Query..." onkeydown="if(event.key==='Enter') loadProxy(this.value)">
+            <div class="shortcuts" id="shortcut-container">
+                <!-- Hardcoded Shortcuts -->
+                <div class="shortcut-link" onclick="loadProxy('https://github.com')">GitHub</div>
+                <div class="shortcut-link" onclick="loadProxy('https://tiktok.com')">TikTok</div>
+                <div class="shortcut-link" onclick="loadProxy('https://youtube.com')">YouTube</div>
+                <div class="shortcut-link" onclick="loadProxy('https://guns.lol')">Guns.lol</div>
+                <div class="shortcut-link" onclick="loadProxy('https://classroom.google.com')">Classroom</div>
+                <button class="add-btn" onclick="addCustomShortcut()">+</button>
             </div>
         </div>
         <div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div>
     </div>
 
-    <!-- GAMES -->
+    <!-- GAMES (Updated) -->
     <div id="gamesMenu" class="overlay">
-        <h2 style="color:var(--accent); font-size:3rem; margin-bottom:40px;">VAULT</h2>
-        <div class="game-grid">
-            <a href="https://useridk758.github.io" class="game-item">
-                <img src="https://img.utdstc.com" alt="1v1.lol">
-                <span>1v1.LOL</span>
-            </a>
+        <h2 style="color:var(--accent); font-size:3rem; margin-bottom:30px;">VAULT</h2>
+        <div style="cursor:pointer; display:flex; flex-direction:column; align-items:center;" onclick="loadProxy('https://useridk758.github.io')">
+            <img src="https://img.utdstc.com" width="120" style="border-radius:25px; border:2px solid var(--accent);"><br>1v1.LOL
         </div>
         <div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div>
     </div>
 
-    <!-- CREDITS -->
     <div id="creditsMenu" class="overlay">
-        <h2 style="color:var(--accent); font-size:3rem;">CREDITS</h2>
-        <p style="font-size: 1.5rem;">Everything made by <span style="color:var(--accent); font-weight:bold;">DUNKO</span></p>
+        <h2 style="color:var(--accent); font-size:3.5rem;">CREDITS</h2>
+        <p style="font-size: 2rem;">Built by <span style="color:var(--accent); font-weight:bold;">DUNKO</span></p>
         <div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div>
     </div>
 
-    <!-- SETTINGS -->
     <div id="settingsMenu" class="overlay">
-        <h2 style="color:var(--accent); font-size:3rem;">SETTINGS</h2>
-        <div style="background:rgba(255,255,255,0.05); padding:30px; border-radius:20px; border:1px solid #333; text-align:left; width:320px;">
-            <p style="display:flex; justify-content:space-between;">Panic Key: <b style="color:var(--accent)">ESC</b></p>
-            <p style="display:flex; justify-content:space-between;">Cloak: <b style="color:var(--accent)">About:Blank</b></p>
-            <p style="display:flex; justify-content:space-between;">UI Animations: <b style="color:var(--accent)">Smooth</b></p>
-        </div>
+        <h2 style="color:var(--accent); font-size:3.5rem;">SETTINGS</h2>
+        <p>Stealth: <b>Enabled</b> | UI: <b>Smooth</b></p>
         <div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div>
     </div>
-
-    <div class="panic-hint">Press [ESC] to Panic</div>
 
     <script>
-        // 1. AUTOMATIC ABOUT:BLANK CLOAK
+        // 1. AUTOMATIC CLOAK
         window.onload = function() {
             if (window.top === window.self) {
-                const proceed = confirm("Proceed to about:blank mode for stealth browsing?");
-                if (proceed) {
+                if (confirm("Launch NexSTEP in About:Blank stealth mode?")) {
                     const win = window.open();
-                    if (!win) {
-                        alert("Pop-up blocked! Enable them for stealth mode.");
-                        return;
-                    }
-                    win.document.body.style.margin = '0';
-                    win.document.body.style.height = '100vh';
-                    win.document.body.style.overflow = 'hidden';
                     const iframe = win.document.createElement('iframe');
                     iframe.style = "border:none;width:100%;height:100%;position:fixed;top:0;left:0;";
                     iframe.src = window.location.href;
@@ -133,24 +121,69 @@
                     window.location.replace('https://google.com');
                 }
             }
+            loadSavedShortcuts();
         };
 
-        // 2. PANIC KEY
-        window.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") window.location.replace("https://classroom.google.com");
-        });
-
-        // 3. UI CONTROLS
-        function openMenu(id) {
-            document.getElementById('main-ui').classList.add('blur');
-            document.getElementById(id).classList.add('active');
-        }
-        function closeMenus() {
-            document.getElementById('main-ui').classList.remove('blur');
-            document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active'));
+        // 2. PROXY & SEARCH ENGINE
+        function loadProxy(val) {
+            let url = val.trim();
+            if (!url.startsWith('http')) {
+                if (url.includes('.')) url = 'https://' + url;
+                else url = 'https://www.google.com' + encodeURIComponent(url);
+            }
+            document.getElementById('proxy-frame').src = url;
+            document.getElementById('proxy-viewer').style.display = 'block';
         }
 
-        // 4. STARFIELD ENGINE
+        function closeProxy() {
+            document.getElementById('proxy-viewer').style.display = 'none';
+            document.getElementById('proxy-frame').src = '';
+        }
+
+        // 3. CUSTOM SHORTCUTS
+        function addCustomShortcut() {
+            const name = prompt("Shortcut Name:");
+            const url = prompt("Shortcut URL (include https://):");
+            const img = prompt("Image Address (Optional):");
+            if (name && url) {
+                const shortcuts = JSON.parse(localStorage.getItem('nexstep_shortcuts') || '[]');
+                shortcuts.push({ name, url, img });
+                localStorage.setItem('nexstep_shortcuts', JSON.stringify(shortcuts));
+                loadSavedShortcuts();
+            }
+        }
+
+        function loadSavedShortcuts() {
+            const container = document.getElementById('shortcut-container');
+            // Reset to hardcoded ones first
+            container.innerHTML = `
+                <div class="shortcut-link" onclick="loadProxy('https://github.com')">GitHub</div>
+                <div class="shortcut-link" onclick="loadProxy('https://tiktok.com')">TikTok</div>
+                <div class="shortcut-link" onclick="loadProxy('https://youtube.com')">YouTube</div>
+                <div class="shortcut-link" onclick="loadProxy('https://guns.lol')">Guns.lol</div>
+                <div class="shortcut-link" onclick="loadProxy('https://classroom.google.com')">Classroom</div>
+            `;
+            const saved = JSON.parse(localStorage.getItem('nexstep_shortcuts') || '[]');
+            saved.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'shortcut-link';
+                div.onclick = () => loadProxy(s.url);
+                div.innerHTML = s.img ? `<img src="${s.img}" width="16" height="16"> ${s.name}` : s.name;
+                container.appendChild(div);
+            });
+            const btn = document.createElement('button');
+            btn.className = 'add-btn';
+            btn.innerText = '+';
+            btn.onclick = addCustomShortcut;
+            container.appendChild(btn);
+        }
+
+        // 4. NAVIGATION & PANIC
+        window.addEventListener('keydown', (e) => { if (e.key === "Escape") window.location.replace("https://classroom.google.com"); });
+        function openMenu(id) { document.getElementById('main-ui').classList.add('blur'); document.getElementById(id).classList.add('active'); }
+        function closeMenus() { document.getElementById('main-ui').classList.remove('blur'); document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active')); }
+
+        // STARFIELD ANIMATION (Original Script)
         const canvas = document.getElementById('star-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [];
@@ -168,11 +201,7 @@
             }
         }
         for(let i=0; i<400; i++) stars.push(new Star());
-        const draw = () => {
-            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
-            stars.forEach(s=>{s.move(); s.show();});
-            requestAnimationFrame(draw);
-        };
+        const draw = () => { ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s=>{s.move(); s.show();}); requestAnimationFrame(draw); };
         draw();
     </script>
 </body>
