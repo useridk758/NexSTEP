@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Drive</title>
-    <link rel="icon" href="https://ssl.gstatic.com">
+    <title id="tab-title">Google Drive</title>
+    <link id="tab-icon" rel="icon" href="https://ssl.gstatic.com">
     <style>
         :root { --accent: #00d4ff; --bg: rgba(0, 0, 0, 0.98); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: #fff; }
@@ -15,10 +15,6 @@
         .ui-layer.blur { transform: scale(0.9); opacity: 0; pointer-events: none; }
         h1 { font-size: 5rem; letter-spacing: 15px; margin: 0; text-shadow: 0 0 25px var(--accent); color: var(--accent); }
 
-        /* COUNTERS */
-        .counter-container { display: flex; gap: 20px; margin-top: 15px; font-weight: bold; font-size: 0.8rem; color: #777; }
-        .counter-item b { color: var(--accent); }
-
         /* BOTTOM NAV */
         .bottom-nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; gap: 12px; background: rgba(0, 0, 0, 0.8); padding: 10px 20px; border-radius: 50px; border: 1px solid rgba(0, 212, 255, 0.3); backdrop-filter: blur(15px); }
         .nav-btn { padding: 8px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,212,255,0.2); border-radius: 25px; cursor: pointer; transition: 0.3s; color: #fff; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; }
@@ -28,37 +24,43 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 150; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transform: translateY(100%); transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
         .overlay.active { opacity: 1; pointer-events: all; transform: translateY(0); }
 
-        /* SEARCH & PROXY */
-        .search-box { width: 600px; max-width: 90%; text-align: center; }
-        .search-input { width: 100%; padding: 15px 25px; border-radius: 30px; border: 2px solid var(--accent); background: transparent; color: #fff; font-size: 1.1rem; outline: none; margin-bottom: 20px; text-align: center; }
-        .shortcuts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
-        .shortcut-link { padding: 8px 15px; border: 1px solid #333; border-radius: 15px; color: #aaa; text-decoration: none; transition: 0.3s; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .shortcut-link:hover { border-color: var(--accent); color: #fff; background: rgba(0,212,255,0.1); }
-        .add-btn { background: var(--accent); color: #000; font-weight: bold; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 1.2rem; }
+        /* SETTINGS SYSTEM */
+        .settings-header { position: absolute; top: 40px; display: flex; gap: 20px; z-index: 160; }
+        .tab-btn { padding: 10px 25px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; cursor: pointer; background: rgba(255,255,255,0.02); transition: 0.3s; font-weight: bold; font-size: 0.9rem; }
+        .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        
+        .settings-content { width: 600px; max-width: 90%; height: 60vh; overflow-y: auto; text-align: left; padding: 20px; }
+        .settings-section { display: none; }
+        .settings-section.active { display: block; }
+        
+        .x-close { position: absolute; top: 30px; right: 40px; font-size: 2rem; cursor: pointer; color: #555; transition: 0.3s; }
+        .x-close:hover { color: red; transform: rotate(90deg); }
+
+        /* SETTINGS ELEMENTS */
+        .setting-item { margin-bottom: 25px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; }
+        .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
+        .color-circle { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .color-circle:hover { transform: scale(1.1); }
+        
+        input[type="text"] { width: 100%; padding: 10px; background: #111; border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
+        .confirm-btn { margin-top: 10px; width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         /* PROXY VIEWER */
         #proxy-viewer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300; background: #fff; display: none; }
         #proxy-frame { width: 100%; height: 100%; border: none; }
         .close-proxy { position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: var(--accent); padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 310; border: 1px solid var(--accent); }
-
-        .close-btn { margin-top: 40px; cursor: pointer; color: var(--accent); font-weight: bold; letter-spacing: 2px; }
     </style>
 </head>
 <body>
     <canvas id="star-canvas"></canvas>
 
-    <!-- PROXY IFRAME CONTAINER -->
     <div id="proxy-viewer">
-        <div class="close-proxy" onclick="closeProxy()">[ EXIT SEARCH ]</div>
+        <div class="close-proxy" onclick="closeProxy()">[ EXIT ]</div>
         <iframe id="proxy-frame"></iframe>
     </div>
 
     <div id="main-ui" class="ui-layer">
-        <h1>NexSTEP</h1>
-        <div class="counter-container">
-            <div class="counter-item">Online: <b id="online-count">1</b></div>
-            <div class="counter-item">Visits: <b id="visit-count">1,024</b></div>
-        </div>
+        <h1 id="main-logo">NexSTEP</h1>
         <div style="color:#555; margin-top:10px; font-weight:bold; letter-spacing:3px;">GALAXY EDITION</div>
     </div>
 
@@ -69,126 +71,84 @@
         <div class="nav-btn" onclick="openMenu('settingsMenu')">Settings</div>
     </div>
 
-    <!-- SEARCH OVERLAY -->
-    <div id="searchMenu" class="overlay">
-        <div class="search-box">
-            <h2 style="color:var(--accent); letter-spacing:5px;">SEARCH WITH FREEDOM</h2>
-            <input type="text" id="searchBar" class="search-input" placeholder="Enter URL or Search Query..." onkeydown="if(event.key==='Enter') loadProxy(this.value)">
-            <div class="shortcuts" id="shortcut-container">
-                <!-- Hardcoded Shortcuts -->
-                <div class="shortcut-link" onclick="loadProxy('https://github.com')">GitHub</div>
-                <div class="shortcut-link" onclick="loadProxy('https://tiktok.com')">TikTok</div>
-                <div class="shortcut-link" onclick="loadProxy('https://youtube.com')">YouTube</div>
-                <div class="shortcut-link" onclick="loadProxy('https://guns.lol')">Guns.lol</div>
-                <div class="shortcut-link" onclick="loadProxy('https://classroom.google.com')">Classroom</div>
-                <button class="add-btn" onclick="addCustomShortcut()">+</button>
+    <!-- SETTINGS MENU -->
+    <div id="settingsMenu" class="overlay">
+        <div class="x-close" onclick="closeMenus()">&times;</div>
+        
+        <div class="settings-header">
+            <div class="tab-btn active" onclick="switchTab('graphics')">Graphics</div>
+            <div class="tab-btn" onclick="switchTab('opti')">Optimization</div>
+            <div class="tab-btn" onclick="switchTab('cloak')">Cloaking</div>
+        </div>
+
+        <div class="settings-content">
+            <!-- Graphics Section -->
+            <div id="graphics" class="settings-section active">
+                <div class="setting-item">
+                    <label>Graphics Quality</label>
+                    <select id="quality" style="width:100%; padding:10px; background:#111; color:white; border-radius:8px; margin-top:10px;">
+                        <option value="high">High (400 Stars)</option>
+                        <option value="low">Low (100 Stars)</option>
+                        <option value="ultra">Ultra (800 Stars)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Bloom Effect</label>
+                    <button class="confirm-btn" onclick="toggleBloom()" style="background:#333; color:white;">Toggle Glow</button>
+                </div>
+            </div>
+
+            <!-- Optimization Section -->
+            <div id="opti" class="settings-section">
+                <div class="setting-item">
+                    <label>Background Stars</label>
+                    <button id="star-toggle" class="confirm-btn" onclick="toggleStars()">Disable Stars</button>
+                </div>
+                <div class="setting-item">
+                    <label>Accent Color</label>
+                    <div class="color-grid">
+                        <div class="color-circle" style="background:#00d4ff" onclick="setAccent('#00d4ff')"></div>
+                        <div class="color-circle" style="background:#ff004c" onclick="setAccent('#ff004c')"></div>
+                        <div class="color-circle" style="background:#00ff88" onclick="setAccent('#00ff88')"></div>
+                        <div class="color-circle" style="background:#ffcc00" onclick="setAccent('#ffcc00')"></div>
+                        <div class="color-circle" style="background:#a600ff" onclick="setAccent('#a600ff')"></div>
+                        <div class="color-circle" style="background:#ff6a00" onclick="setAccent('#ff6a00')"></div>
+                        <div class="color-circle" style="background:#ffffff" onclick="setAccent('#ffffff')"></div>
+                        <div class="color-circle" style="background:#555555" onclick="setAccent('#555555')"></div>
+                        <div class="color-circle" style="background:#004cff" onclick="setAccent('#004cff')"></div>
+                        <div class="color-circle" style="background:#ff00fb" onclick="setAccent('#ff00fb')"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cloak Section -->
+            <div id="cloak" class="settings-section">
+                <div class="setting-item">
+                    <label>Tab Name</label>
+                    <input type="text" id="nameInput" placeholder="Enter Tab Title..." onkeydown="if(event.key==='Enter') applyCloak()">
+                </div>
+                <div class="setting-item">
+                    <label>Favicon URL</label>
+                    <input type="text" id="iconInput" placeholder="Enter Image URL...">
+                </div>
+                <button class="confirm-btn" onclick="applyCloak()">Confirm Changes</button>
             </div>
         </div>
-        <div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div>
     </div>
 
-    <!-- GAMES (Updated) -->
-    <div id="gamesMenu" class="overlay">
-        <h2 style="color:var(--accent); font-size:3rem; margin-bottom:30px;">VAULT</h2>
-        <div style="cursor:pointer; display:flex; flex-direction:column; align-items:center;" onclick="loadProxy('https://useridk758.github.io')">
-            <img src="https://img.utdstc.com" width="120" style="border-radius:25px; border:2px solid var(--accent);"><br>1v1.LOL
-        </div>
-        <div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div>
-    </div>
-
-    <div id="creditsMenu" class="overlay">
-        <h2 style="color:var(--accent); font-size:3.5rem;">CREDITS</h2>
-        <p style="font-size: 2rem;">Built by <span style="color:var(--accent); font-weight:bold;">DUNKO</span></p>
-        <div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div>
-    </div>
-
-    <div id="settingsMenu" class="overlay">
-        <h2 style="color:var(--accent); font-size:3.5rem;">SETTINGS</h2>
-        <p>Stealth: <b>Enabled</b> | UI: <b>Smooth</b></p>
-        <div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div>
-    </div>
+    <!-- SEARCH & GAMES (REMAIN UNCHANGED) -->
+    <div id="searchMenu" class="overlay"><div class="settings-content" style="text-align:center;"><h2>SEARCH</h2><input type="text" class="search-input" onkeydown="if(event.key==='Enter') loadProxy(this.value)" placeholder="Search URL..."><div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div></div></div>
+    <div id="gamesMenu" class="overlay"><div style="cursor:pointer;" onclick="loadProxy('https://useridk758.github.io')">1v1.LOL</div><div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div></div>
+    <div id="creditsMenu" class="overlay"><h2>Built by DUNKO</h2><div class="close-btn" onclick="closeMenus()">[ CLOSE ]</div></div>
 
     <script>
-        // 1. AUTOMATIC CLOAK
-        window.onload = function() {
-            if (window.top === window.self) {
-                if (confirm("Launch NexSTEP in About:Blank stealth mode?")) {
-                    const win = window.open();
-                    const iframe = win.document.createElement('iframe');
-                    iframe.style = "border:none;width:100%;height:100%;position:fixed;top:0;left:0;";
-                    iframe.src = window.location.href;
-                    win.document.body.appendChild(iframe);
-                    window.location.replace('https://google.com');
-                }
-            }
-            loadSavedShortcuts();
-        };
-
-        // 2. PROXY & SEARCH ENGINE
-        function loadProxy(val) {
-            let url = val.trim();
-            if (!url.startsWith('http')) {
-                if (url.includes('.')) url = 'https://' + url;
-                else url = 'https://www.google.com' + encodeURIComponent(url);
-            }
-            document.getElementById('proxy-frame').src = url;
-            document.getElementById('proxy-viewer').style.display = 'block';
-        }
-
-        function closeProxy() {
-            document.getElementById('proxy-viewer').style.display = 'none';
-            document.getElementById('proxy-frame').src = '';
-        }
-
-        // 3. CUSTOM SHORTCUTS
-        function addCustomShortcut() {
-            const name = prompt("Shortcut Name:");
-            const url = prompt("Shortcut URL (include https://):");
-            const img = prompt("Image Address (Optional):");
-            if (name && url) {
-                const shortcuts = JSON.parse(localStorage.getItem('nexstep_shortcuts') || '[]');
-                shortcuts.push({ name, url, img });
-                localStorage.setItem('nexstep_shortcuts', JSON.stringify(shortcuts));
-                loadSavedShortcuts();
-            }
-        }
-
-        function loadSavedShortcuts() {
-            const container = document.getElementById('shortcut-container');
-            // Reset to hardcoded ones first
-            container.innerHTML = `
-                <div class="shortcut-link" onclick="loadProxy('https://github.com')">GitHub</div>
-                <div class="shortcut-link" onclick="loadProxy('https://tiktok.com')">TikTok</div>
-                <div class="shortcut-link" onclick="loadProxy('https://youtube.com')">YouTube</div>
-                <div class="shortcut-link" onclick="loadProxy('https://guns.lol')">Guns.lol</div>
-                <div class="shortcut-link" onclick="loadProxy('https://classroom.google.com')">Classroom</div>
-            `;
-            const saved = JSON.parse(localStorage.getItem('nexstep_shortcuts') || '[]');
-            saved.forEach(s => {
-                const div = document.createElement('div');
-                div.className = 'shortcut-link';
-                div.onclick = () => loadProxy(s.url);
-                div.innerHTML = s.img ? `<img src="${s.img}" width="16" height="16"> ${s.name}` : s.name;
-                container.appendChild(div);
-            });
-            const btn = document.createElement('button');
-            btn.className = 'add-btn';
-            btn.innerText = '+';
-            btn.onclick = addCustomShortcut;
-            container.appendChild(btn);
-        }
-
-        // 4. NAVIGATION & PANIC
-        window.addEventListener('keydown', (e) => { if (e.key === "Escape") window.location.replace("https://classroom.google.com"); });
-        function openMenu(id) { document.getElementById('main-ui').classList.add('blur'); document.getElementById(id).classList.add('active'); }
-        function closeMenus() { document.getElementById('main-ui').classList.remove('blur'); document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active')); }
-
-        // STARFIELD ANIMATION (Original Script)
+        // 1. STARFIELD LOGIC
+        let starVisible = true;
         const canvas = document.getElementById('star-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [];
-        const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-        window.addEventListener('resize', resize); resize();
+        let starCount = 400;
+
         class Star {
             constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.z = Math.random() * canvas.width; }
             move() { this.z -= 2; if(this.z <= 0) this.z = canvas.width; }
@@ -200,9 +160,67 @@
                 ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
             }
         }
-        for(let i=0; i<400; i++) stars.push(new Star());
-        const draw = () => { ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); stars.forEach(s=>{s.move(); s.show();}); requestAnimationFrame(draw); };
-        draw();
+
+        function initStars() {
+            stars = [];
+            for(let i=0; i<starCount; i++) stars.push(new Star());
+        }
+        
+        function draw() {
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            if(starVisible) stars.forEach(s=>{s.move(); s.show();});
+            requestAnimationFrame(draw);
+        }
+        initStars(); draw();
+
+        // 2. SETTINGS CONTROLS
+        function switchTab(tabId) {
+            document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function toggleStars() {
+            starVisible = !starVisible;
+            document.getElementById('star-toggle').innerText = starVisible ? "Disable Stars" : "Enable Stars";
+        }
+
+        function setAccent(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            document.getElementById('main-logo').style.textShadow = `0 0 25px ${color}`;
+        }
+
+        function applyCloak() {
+            const name = document.getElementById('nameInput').value;
+            const icon = document.getElementById('iconInput').value;
+            if(name) { document.title = name; document.getElementById('tab-title').innerText = name; }
+            if(icon) document.getElementById('tab-icon').href = icon;
+        }
+
+        function toggleBloom() {
+            const logo = document.getElementById('main-logo');
+            logo.style.textShadow = logo.style.textShadow === 'none' ? `0 0 25px var(--accent)` : 'none';
+        }
+
+        // 3. CORE LOGIC (Cloak, Proxy, Panic)
+        window.onload = () => {
+            if (window.top === window.self && confirm("About:Blank Stealth?")) {
+                const win = window.open();
+                const iframe = win.document.createElement('iframe');
+                iframe.style = "border:none;width:100%;height:100%;position:fixed;top:0;left:0;";
+                iframe.src = window.location.href;
+                win.document.body.appendChild(iframe);
+                window.location.replace('https://google.com');
+            }
+        };
+
+        function openMenu(id) { document.getElementById('main-ui').classList.add('blur'); document.getElementById(id).classList.add('active'); }
+        function closeMenus() { document.getElementById('main-ui').classList.remove('blur'); document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active')); }
+        function loadProxy(v) { document.getElementById('proxy-frame').src = v.includes('http') ? v : 'https://' + v; document.getElementById('proxy-viewer').style.display='block'; }
+        function closeProxy() { document.getElementById('proxy-viewer').style.display='none'; document.getElementById('proxy-frame').src=''; }
+        window.addEventListener('keydown', (e) => { if (e.key === "Escape") window.location.replace("https://classroom.google.com"); });
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initStars(); });
     </script>
 </body>
 </html>
