@@ -8,7 +8,7 @@
     <style>
         :root { --accent: #00d4ff; --bg: rgba(0, 0, 0, 0.98); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: #fff; }
-        #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+        #star-canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
 
         /* MAIN UI */
         .ui-layer { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; transition: 0.7s; }
@@ -24,7 +24,7 @@
         .nav-btn:hover { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent); }
 
         /* OVERLAYS */
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 150; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transform: translateY(100%); transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 250; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transform: translateY(100%); transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
         .overlay.active { opacity: 1; pointer-events: all; transform: translateY(0); }
 
         /* SEARCH & SHORTCUTS */
@@ -33,7 +33,7 @@
         .shortcuts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
         .shortcut { padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; border: 1px solid #222; font-size: 0.8rem; transition: 0.3s; }
         .shortcut:hover { border-color: var(--accent); color: var(--accent); }
-        .add-sc-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; }
+        .add-sc-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         /* PROXY VIEW */
         #proxy-viewer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 500; background: #fff; display: none; }
@@ -47,13 +47,13 @@
         .settings-body { width: 500px; margin-top: 50px; text-align: left; }
         .s-tab { display: none; }
         .s-tab.active { display: block; }
-        .x-btn { position: absolute; top: 25px; right: 25px; font-size: 2rem; cursor: pointer; color: #444; }
+        .x-btn { position: absolute; top: 25px; right: 25px; font-size: 2.5rem; cursor: pointer; color: #444; z-index: 260; }
         .x-btn:hover { color: red; }
 
         /* FORMS */
         .sc-form { display: none; background: #111; padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px solid #333; }
         input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
-        .confirm-btn { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .confirm-btn { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; margin-bottom: 5px; }
 
         .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
         .dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
@@ -77,6 +77,7 @@
         </div>
     </div>
 
+    <!-- NAVIGATION BAR -->
     <div class="bottom-nav">
         <div class="nav-btn" onclick="openMenu('gamesMenu')">Games</div>
         <div class="nav-btn" onclick="openMenu('searchMenu')">Search</div>
@@ -104,30 +105,31 @@
                 <button class="confirm-btn" onclick="saveShortcut()">Add Shortcut</button>
             </div>
         </div>
-        <div style="margin-top:40px; cursor:pointer;" onclick="closeMenus()">[ CLOSE ]</div>
+        <div style="margin-top:40px; cursor:pointer; font-weight:bold; color:var(--accent);" onclick="closeMenus()">[ CLOSE ]</div>
     </div>
 
     <!-- SETTINGS OVERLAY -->
     <div id="settingsMenu" class="overlay">
         <div class="x-btn" onclick="closeMenus()">&times;</div>
         <div class="settings-header">
-            <div class="tab-btn active" onclick="setTab('g')">Graphics</div>
-            <div class="tab-btn" onclick="setTab('o')">Optimization</div>
-            <div class="tab-btn" onclick="setTab('c')">Cloaking</div>
+            <div class="tab-btn active" id="btn-g" onclick="setTab('g')">Graphics</div>
+            <div class="tab-btn" id="btn-o" onclick="setTab('o')">Optimization</div>
+            <div class="tab-btn" id="btn-c" onclick="setTab('c')">Cloaking</div>
         </div>
         
         <div class="settings-body">
             <!-- Graphics -->
             <div id="tab-g" class="s-tab active">
                 <h3>Graphics Engine</h3>
-                <button class="confirm-btn" onclick="setStars(100)">Low Graphics (100 Stars)</button><br><br>
-                <button class="confirm-btn" style="background:#333; color:#fff" onclick="toggleBloom()">Toggle Bloom Effect</button>
+                <button class="confirm-btn" onclick="setStars(100)">Low Graphics (100 Stars)</button>
+                <button class="confirm-btn" onclick="setStars(400)">Default Graphics (400 Stars)</button>
+                <button class="confirm-btn" style="background:#333; color:#fff" onclick="toggleBloom()">Toggle Bloom (Logo Glow)</button>
             </div>
             <!-- Optimization -->
             <div id="tab-o" class="s-tab">
-                <h3>System Styles</h3>
+                <h3>Optimization & Styles</h3>
                 <button class="confirm-btn" id="stog" onclick="toggleStars()">Disable Background Stars</button>
-                <p>Accent Colors:</p>
+                <p>Choose Accent Color:</p>
                 <div class="color-grid">
                     <div class="dot" style="background:#00d4ff" onclick="setCol('#00d4ff')"></div>
                     <div class="dot" style="background:#ff0055" onclick="setCol('#ff0055')"></div>
@@ -144,29 +146,40 @@
             <!-- Cloaking -->
             <div id="tab-c" class="s-tab">
                 <h3>Tab Cloaking</h3>
-                <input type="text" id="tn" placeholder="Tab Name">
-                <input type="text" id="ti" placeholder="Favicon URL">
-                <button class="confirm-btn" onclick="applyCloak()">Confirm Changes</button>
+                <p>Changes will apply to the current tab.</p>
+                <input type="text" id="tn" placeholder="New Tab Name">
+                <input type="text" id="ti" placeholder="New Favicon URL">
+                <button class="confirm-btn" onclick="applyCloak()">Confirm & Apply</button>
             </div>
         </div>
     </div>
 
     <!-- GAMES & CREDITS -->
     <div id="gamesMenu" class="overlay">
+        <h2 style="color:var(--accent)">GAME VAULT</h2>
         <div onclick="loadProxy('https://useridk758.github.io')" style="cursor:pointer; text-align:center;">
-            <img src="https://img.utdstc.com" width="100" style="border-radius:20px; border:2px solid var(--accent)"><br>1v1.LOL
+            <img src="https://img.utdstc.com" width="120" style="border-radius:20px; border:2px solid var(--accent); margin-bottom:10px;"><br>
+            <span style="font-weight:bold; letter-spacing:2px;">1v1.LOL</span>
         </div>
-        <div style="margin-top:40px; cursor:pointer;" onclick="closeMenus()">[ CLOSE ]</div>
+        <div style="margin-top:40px; cursor:pointer; font-weight:bold; color:var(--accent);" onclick="closeMenus()">[ CLOSE ]</div>
     </div>
-    <div id="creditsMenu" class="overlay"><h2>Everything made by DUNKO</h2><div onclick="closeMenus()">[ CLOSE ]</div></div>
+
+    <div id="creditsMenu" class="overlay">
+        <h2 style="color:var(--accent)">SYSTEM CREDITS</h2>
+        <p style="font-size:1.5rem;">Designed and Developed by</p>
+        <p style="font-size:3rem; font-weight:bold; color:var(--accent);">DUNKO</p>
+        <div style="margin-top:40px; cursor:pointer; font-weight:bold; color:var(--accent);" onclick="closeMenus()">[ CLOSE ]</div>
+    </div>
 
     <script>
-        // 1. STARFIELD
+        // 1. STARFIELD ENGINE
         const canvas = document.getElementById('star-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [], starCount = 400, showStars = true;
+
         const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
         window.addEventListener('resize', resize); resize();
+
         class Star {
             constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.z = Math.random() * canvas.width; }
             move() { this.z -= 2; if(this.z <= 0) this.z = canvas.width; }
@@ -178,28 +191,50 @@
                 ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
             }
         }
+
         const initStars = () => { stars = []; for(let i=0; i<starCount; i++) stars.push(new Star()); };
-        const draw = () => { ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); if(showStars) stars.forEach(s=>{s.move(); s.show();}); requestAnimationFrame(draw); };
+        const draw = () => { 
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height); 
+            if(showStars) stars.forEach(s=>{s.move(); s.show();}); 
+            requestAnimationFrame(draw); 
+        };
         initStars(); draw();
 
-        // 2. SETTINGS
-        function setTab(t) {
-            document.querySelectorAll('.s-tab, .tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-'+t).classList.add('active');
-            event.currentTarget.classList.add('active');
+        // 2. NAVIGATION & UI CONTROLS
+        function openMenu(id) {
+            document.getElementById('main-ui').classList.add('blur');
+            document.getElementById(id).classList.add('active');
         }
+
+        function closeMenus() {
+            document.getElementById('main-ui').classList.remove('blur');
+            document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active'));
+        }
+
+        function setTab(t) {
+            document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-'+t).classList.add('active');
+            document.getElementById('btn-'+t).classList.add('active');
+        }
+
+        // 3. SETTINGS FUNCTIONS
         function toggleStars() { showStars = !showStars; document.getElementById('stog').innerText = showStars ? "Disable Background Stars" : "Enable Background Stars"; }
         function setStars(n) { starCount = n; initStars(); }
         function setCol(c) { document.documentElement.style.setProperty('--accent', c); }
+        function toggleBloom() { 
+            const logo = document.getElementById('logo');
+            logo.style.textShadow = (logo.style.textShadow === 'none' || logo.style.textShadow === '') ? '0 0 25px var(--accent)' : 'none'; 
+        }
         function applyCloak() { 
             const n = document.getElementById('tn').value; 
             const i = document.getElementById('ti').value;
             if(n) document.title = n;
             if(i) document.getElementById('dynamic-favicon').href = i;
+            alert("Cloak Applied!");
         }
-        function toggleBloom() { document.getElementById('logo').style.textShadow = (document.getElementById('logo').style.textShadow === 'none') ? '0 0 25px var(--accent)' : 'none'; }
 
-        // 3. PROXY & SEARCH
+        // 4. PROXY & SHORTCUTS
         function loadProxy(v) {
             let url = v.trim();
             if(!url.startsWith('http')) url = url.includes('.') ? 'https://'+url : 'https://www.google.com;
@@ -211,26 +246,29 @@
         function saveShortcut() {
             const n = document.getElementById('scn').value, u = document.getElementById('scu').value;
             if(n && u) {
-                let d = document.createElement('div'); d.className = 'shortcut'; d.innerText = n; d.onclick = () => loadProxy(u);
+                let d = document.createElement('div'); d.className = 'shortcut'; d.innerText = n; 
+                d.onclick = function() { loadProxy(u); };
                 document.getElementById('sc-list').insertBefore(d, document.querySelector('.add-sc-btn'));
                 toggleScForm();
             }
         }
 
-        // 4. CLOAK & PANIC
+        // 5. BOOT LOGIC (Cloak & Panic)
         window.onload = () => {
-            if (window.top === window.self && confirm("Proceed to About:Blank stealth?")) {
-                const win = window.open();
-                const iframe = win.document.createElement('iframe');
-                iframe.style = "border:none;width:100%;height:100%;position:fixed;top:0;left:0;";
-                iframe.src = window.location.href;
-                win.document.body.appendChild(iframe);
-                window.location.replace('https://google.com');
+            if (window.top === window.self) {
+                if(confirm("Initialize NexSTEP Stealth (About:Blank)?")) {
+                    const win = window.open();
+                    if(!win) return alert("Pop-up blocked! Please allow pop-ups.");
+                    const iframe = win.document.createElement('iframe');
+                    iframe.style = "border:none;width:100%;height:100%;position:fixed;top:0;left:0;";
+                    iframe.src = window.location.href;
+                    win.document.body.appendChild(iframe);
+                    window.location.replace('https://google.com');
+                }
             }
         };
+
         window.addEventListener('keydown', (e) => { if(e.key === "Escape") window.location.replace("https://classroom.google.com"); });
-        function openMenu(id) { document.getElementById('main-ui').classList.add('blur'); document.getElementById(id).classList.add('active'); }
-        function closeMenus() { document.getElementById('main-ui').classList.remove('blur'); document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active')); }
     </script>
 </body>
 </html>
